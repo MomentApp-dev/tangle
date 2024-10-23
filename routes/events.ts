@@ -1,23 +1,27 @@
-import express, { Router } from "express";
+const express = require('express');
 
-const router: Router = express.Router();
+const router = express.Router();
 
-router.get('/', () => {
-
+// list events
+router.get('/', (request, response) => {
+    response.send('Listing events!');
 });
 
-router.get('/', () => {
-
+// get event
+router.get('/:eventId', (request, response) => {
+    response.send(`Getting the ${request.params["eventId"]} event!`);
 });
 
-router.patch('/', () => {
-
+router.patch('/:eventId', (request, response) => {
+    response.send(`Patching the ${request.params["eventId"]} event!`);
 });
 
-router.post('/', () => {
-
+router.post('/', (request, response) => {
+    response.send('Creating an event!');
 });
 
-router.delete('/', () => {
-
+router.delete('/:eventId', (request, response) => {
+    response.send(`Deleting the ${request.params["eventId"]} event!`);
 });
+
+module.exports = router;

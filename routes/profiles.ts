@@ -1,23 +1,27 @@
-import express, { Router } from "express";
+const express = require('express');
 
-const router: Router = express.Router();
+const router = express.Router();
 
-router.get('/', () => {
-    
+// list events
+router.get('/', (request, response) => {
+    response.send('Listing profiles!');
 });
 
-router.get('/', () => {
-
+// get event
+router.get('/:userId', (request, response) => {
+    response.send(`Getting the ${request.params["userId"]} profile!`);
 });
 
-router.patch('/', () => {
-
+router.patch('/:userId', (request, response) => {
+    response.send(`Patching the ${request.params["userId"]} profile!`);
 });
 
-router.post('/', () => {
-
+router.post('/', (request, response) => {
+    response.send('Creating a profile!');
 });
 
-router.delete('/', () => {
-
+router.delete('/:eventId', (request, response) => {
+    response.send(`Deleting the ${request.params["userId"]} profile!`);
 });
+
+module.exports = router;
