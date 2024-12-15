@@ -1,14 +1,19 @@
+import { GetItemCommand } from "@aws-sdk/client-dynamodb";
+
 const express = require('express');
 
 const router = express.Router();
+
+const client = new DynamoDBClient({ region: "us-east-1"});
 
 // list events
 router.get('/', (request, response) => {
     response.send('Listing profiles!');
 });
 
-// get event
-router.get('/:userId', (request, response) => {
+// get profile
+router.get('/:profileId', (request, response) => {
+    const getCommand = new GetItemCommand({TableName: "profiles", Key: ""});
     response.send(`Getting the ${request.params["userId"]} profile!`);
 });
 

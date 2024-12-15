@@ -1,13 +1,22 @@
 const express = require('express');
+const { DynamoDBClient, ListTablesCommand } = require("@aws-sdk/client-dynamodb");
 
 const router = express.Router();
 
-// list events
-router.get('/', (request, response) => {
-    response.send('Listing events!');
+router.get('/', async (request, response) => {
+    // lists all tables inside of the service account. not what the API should do...
+    const client = new DynamoDBClient({ region: "us-east-1"});
+    const command = new ListTablesCommand({});
+    let responseString = "";
+    try {
+        const awsResponse = await client.send(command);
+        console.log(awsResponse.TableNames);
+        response.send(awsResponse.TableNames);
+    } catch (err) {
+        console.error(err)
+    }
 });
 
-// get event
 router.get('/:eventId', (request, response) => {
     response.send(`Getting the ${request.params["eventId"]} event!`);
 });
