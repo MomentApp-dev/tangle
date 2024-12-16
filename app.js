@@ -4,8 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var eventsRouter = require('./routes/events.ts');
-var profilesRouter = require('./routes/profiles.ts');
+const routes = require('./routes/routes.ts');
 
 var app = express();
 
@@ -15,17 +14,22 @@ app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/events', eventsRouter);
-app.use('/users', profilesRouter);
+// use controllers for each resource defined in routes
+app.use(routes);
+
+app.get('/', (req, res) => {
+  res.json({ status: 'API is running on /api' });
+});
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+// app.use(function(req, res, next) {
+//   console.log('hello world');
+//   next(createError(404));
+// });
 
 // error handler
 app.use(function(err, req, res, next) {
@@ -36,6 +40,11 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.info(`server up on port ${PORT}`);
 });
 
 module.exports = app;

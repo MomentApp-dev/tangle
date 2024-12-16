@@ -1,9 +1,10 @@
-const express = require('express');
-const { DynamoDBClient, ListTablesCommand } = require("@aws-sdk/client-dynamodb");
+import express from 'express';
+import { DynamoDBClient, ListTablesCommand } from "@aws-sdk/client-dynamodb";
+import AWS from 'aws-sdk';
 
 const router = express.Router();
 
-router.get('/', async (request, response) => {
+router.get('/events', async (request, response) => {
     // lists all tables inside of the service account. not what the API should do...
     const client = new DynamoDBClient({ region: "us-east-1"});
     const command = new ListTablesCommand({});
@@ -17,20 +18,20 @@ router.get('/', async (request, response) => {
     }
 });
 
-router.get('/:eventId', (request, response) => {
-    response.send(`Getting the ${request.params["eventId"]} event!`);
-});
+// router.get('/events/:eventId', (request, response) => {
+//     response.send(`Getting the ${request.params["eventId"]} event!`);
+// });
 
-router.patch('/:eventId', (request, response) => {
-    response.send(`Patching the ${request.params["eventId"]} event!`);
-});
+// router.patch('/events/:eventId', (request, response) => {
+//     response.send(`Patching the ${request.params["eventId"]} event!`);
+// });
 
-router.post('/', (request, response) => {
-    response.send('Creating an event!');
-});
+// router.post('/events', (request, response) => {
+//     response.send('Creating an event!');
+// });
 
-router.delete('/:eventId', (request, response) => {
-    response.send(`Deleting the ${request.params["eventId"]} event!`);
-});
+// router.delete('/events/:eventId', (request, response) => {
+//     response.send(`Deleting the ${request.params["eventId"]} event!`);
+// });
 
-module.exports = router;
+export default router;
