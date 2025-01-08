@@ -7,9 +7,9 @@ Boiler plate generated from: https://expressjs.com/en/starter/generator.html
     * Windows Command Prompt: `set DEBUG=myapp:*`
     * Windows PowerShell: `$env:DEBUG='myapp:*'`
 
-# Run on `http://localhost:3000`
+# Run on `http://localhost:8080`
 1. `npm start`
-2. Visit `http://localhost:3000/` on your local browser
+2. Visit `http://localhost:8080/` on your local browser
 
 
 
