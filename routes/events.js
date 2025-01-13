@@ -1,23 +1,37 @@
 const express = require('express');
-const { DynamoDBClient, ListTablesCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, ListTablesCommand, GetItemCommand, QueryCommand } = require("@aws-sdk/client-dynamodb");
 const AWS = require('aws-sdk');
 
 const router = express.Router();
 
 router.get('/events', async (request, response) => {
-    // lists all tables inside of the service account. not what the API should do...
-    console.warn("/events STUBBED");
-    response.send('Getting events!');
-    // const client = new DynamoDBClient({ region: "us-east-1"});
-    // const command = new ListTablesCommand({});
-    // let responseString = "";
-    // try {
-    //     const awsResponse = await client.send(command);
-    //     console.log(awsResponse.TableNames);
-    //     response.send(awsResponse.TableNames);
-    // } catch (err) {
-    //     console.error(err)
-    // }
+    // lists events
+    // TODO: implement pagination & querying subsets
+    const credentials = new AWS.SharedIniFileCredentials({ profile: "tangle-dev" });
+    AWS.config.credentials = credentials;
+
+    const client = new DynamoDBClient({ region: "us-east-1", credentials: credentials});
+    const command = new QueryCommand({
+        "TableName": "events",
+        "KeyConditions": {
+            "events_uuid": {
+                "AttributeValueList": [
+                    {
+                        "S": "57c68c45-b68b-4df8-83a7-1ac0f5677077"
+                    }
+                ],
+                "ComparisonOperator": "EQ",
+            }
+        }
+    });
+    let responseString = "";
+    try {
+        const awsResponse = await client.send(command);
+        console.log(awsResponse);
+        response.send(awsResponse);
+    } catch (err) {
+        console.error(err)
+    }
 });
 
 // router.get('/events/:eventId', (request, response) => {
