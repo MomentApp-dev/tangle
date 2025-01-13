@@ -11,31 +11,8 @@ const client = new DynamoDBClient({
 router.get('/events', async (request, response) => {
     // lists events
     // TODO: implement pagination & querying subsets
-    const credentials = new AWS.SharedIniFileCredentials({ profile: "tangle-dev" });
-    AWS.config.credentials = credentials;
-
-    const client = new DynamoDBClient({ region: "us-east-1", credentials: credentials});
-    const command = new QueryCommand({
-        "TableName": "events",
-        "KeyConditions": {
-            "events_uuid": {
-                "AttributeValueList": [
-                    {
-                        "S": "57c68c45-b68b-4df8-83a7-1ac0f5677077"
-                    }
-                ],
-                "ComparisonOperator": "EQ",
-            }
-        }
-    });
-    let responseString = "";
-    try {
-        const awsResponse = await client.send(command);
-        console.log(awsResponse);
-        response.send(awsResponse);
-    } catch (err) {
-        console.error(err)
-    }
+    console.log("/events STUBBED");
+    response.status(200).send("/events STUBBED");
 });
 
 router.get('/events/:eventId', async (request, response) => {
@@ -47,9 +24,14 @@ router.get('/events/:eventId', async (request, response) => {
             }
         }
     });
-    const event = await client.send(getCommand);
-    console.log(event);
-    response.status(200).send(`Event: ${JSON.stringify(event.Item)}`);
+
+    try {
+        const awsResponse = await client.send(getCommand);
+        console.log(awsResponse);
+        response.status(200).send(`Event: ${JSON.stringify(awsResponse.Item)}`);
+    } catch (err) {
+        console.error(err);
+    }
 });
 
 // router.patch('/events/:eventId', (request, response) => {
