@@ -3,6 +3,10 @@ const { DynamoDBClient, ListTablesCommand, GetItemCommand, QueryCommand } = requ
 const AWS = require('aws-sdk');
 
 const router = express.Router();
+const client = new DynamoDBClient({ 
+    region: "us-east-1", 
+    credentials: new AWS.SharedIniFileCredentials({ profile: "tangle-dev" })
+});
 
 router.get('/events', async (request, response) => {
     // lists events
@@ -34,9 +38,19 @@ router.get('/events', async (request, response) => {
     }
 });
 
-// router.get('/events/:eventId', (request, response) => {
-//     response.send(`Getting the ${request.params["eventId"]} event!`);
-// });
+router.get('/events/:eventId', async (request, response) => {
+    const getCommand = new GetItemCommand({
+        TableName: "events", 
+        Key: {
+            events_uuid: {
+                S: request.params.eventId
+            }
+        }
+    });
+    const event = await client.send(getCommand);
+    console.log(event);
+    response.status(200).send(`Event: ${JSON.stringify(event.Item)}`);
+});
 
 // router.patch('/events/:eventId', (request, response) => {
 //     response.send(`Patching the ${request.params["eventId"]} event!`);
