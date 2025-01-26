@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { DynamoDBClient, ListTablesCommand, GetItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import AWS from 'aws-sdk';
 
 const router = express.Router();
@@ -9,10 +9,21 @@ const client = new DynamoDBClient({
 });
 
 router.get('/events', async (request: Request, response: Response) => {
-    // lists events
-    // TODO: implement pagination & querying subsets
-    console.log("/events STUBBED");
-    response.status(200).send("/events STUBBED");
+    // unused for now -- TODO: implement pagination
+    const pageSize = (request.query['page_size']);
+    const scanInput = {
+        TableName: "events"
+    }
+
+    const command = new ScanCommand(scanInput);
+    try{
+        const scanResponse = await client.send(command);
+        console.log(scanResponse);
+        response.status(200).send(`Event: ${JSON.stringify(scanResponse)}`);
+    } catch (err) {
+        response.status(400).send();
+        console.log(err);
+    }
 });
 
 router.get('/events/:eventId', async (request: Request, response: Response) => {
