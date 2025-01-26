@@ -1,6 +1,7 @@
 import express, { Application } from "express";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
+import morgan from "morgan";
 
 export default class Server {
     constructor(app: Application) {
@@ -16,5 +17,6 @@ export default class Server {
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
         app.use(cookieParser());
+        app.use(morgan(':method :url status[:status] content-length[:res[content-length]] - :response-time ms'));
     }
 }
