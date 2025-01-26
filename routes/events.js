@@ -1,18 +1,31 @@
 const express = require('express');
-const { DynamoDBClient, ListTablesCommand, GetItemCommand, QueryCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, ListTablesCommand, GetItemCommand, QueryCommand, ScanCommand } = require("@aws-sdk/client-dynamodb");
 const AWS = require('aws-sdk');
 
 const router = express.Router();
-const client = new DynamoDBClient({ 
-    region: "us-east-1", 
+const client = new DynamoDBClient({
+    region: "us-east-1",
     credentials: new AWS.SharedIniFileCredentials({ profile: "tangle-dev" })
 });
 
 router.get('/events', async (request, response) => {
-    // lists events
-    // TODO: implement pagination & querying subsets
-    console.log("/events STUBBED");
-    response.status(200).send("/events STUBBED");
+    // unused for now -- TODO: implement pagination
+    const pageSize = (request.query['page_size']);
+    const scanInput = {
+        TableName: "events"
+    }
+
+    const command = new ScanCommand(scanInput);
+    try{
+        const scanResponse = await client.send(command);
+        console.log(scanResponse);
+        response.status(200).send(`Event: ${JSON.stringify(scanResponse)}`);
+    } catch (err) {
+        response.status(400).send();
+        console.log(err);
+    }
+
+
 });
 
 router.get('/events/:eventId', async (request, response) => {
