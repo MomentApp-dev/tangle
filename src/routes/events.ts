@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
-import { DynamoDBClient, ScanCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import AWS from 'aws-sdk';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 const client = new DynamoDBClient({ 
@@ -41,6 +42,7 @@ router.get('/events/:eventId', async (request: Request, response: Response) => {
         console.log(awsResponse);
         response.status(200).send(`Event: ${JSON.stringify(awsResponse.Item)}`);
     } catch (err) {
+        response.status(400).send();
         console.error(err);
     }
 });
@@ -49,9 +51,32 @@ router.get('/events/:eventId', async (request: Request, response: Response) => {
 //     response.send(`Patching the ${request.params["eventId"]} event!`);
 // });
 
-// router.post('/events', (request, response) => {
-//     response.send('Creating an event!');
-// });
+router.post('/events', async (request, response) => {
+    // creates new Item with random ID
+    // TODO: validate for valid input body for event creation
+    const itemToPut =  {
+        // PUTs event item with random UID and empty attributes
+        // TODO: implement attribute specification in request body + validate above
+        "events_uuid": {
+            "S": uuidv4(),
+        },
+    }
+    const putItemInput = {
+        "TableName": "events",
+        "Item": itemToPut,
+    }
+    const command = new PutItemCommand(putItemInput);
+    console.log(command)
+
+    try {
+        const putItemResponse = await client.send(command);
+        console.log(putItemResponse);
+        response.status(200).send(`Event: ${JSON.stringify(putItemResponse)}`);
+    } catch (err) {
+        response.status(400).send();
+        console.error(err);
+    }
+});
 
 // router.delete('/events/:eventId', (request, response) => {
 //     response.send(`Deleting the ${request.params["eventId"]} event!`);
