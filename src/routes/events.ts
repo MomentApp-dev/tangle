@@ -2,12 +2,16 @@ import express, { Request, Response } from 'express';
 import { DynamoDBClient, ScanCommand, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import { Hotspot } from '@cloudscape-design/components';
+import Joi from 'joi';
 
 const router = express.Router();
 const client = new DynamoDBClient({ 
     region: "us-east-1", 
     credentials: new AWS.SharedIniFileCredentials({ profile: "tangle-dev" })
 });
+
+const eventSchema = getEventSchema();
 
 router.get('/events', async (request: Request, response: Response) => {
     // unused for now -- TODO: implement pagination
@@ -54,13 +58,21 @@ router.get('/events/:eventId', async (request: Request, response: Response) => {
 router.post('/events', async (request, response) => {
     // creates new Item with random ID
     // TODO: validate for valid input body for event creation
-    const itemToPut =  {
-        // PUTs event item with random UID and empty attributes
-        // TODO: implement attribute specification in request body + validate above
-        "events_uuid": {
-            "S": uuidv4(),
-        },
-    }
+
+    // title
+    // description
+    // host
+    // startTime
+    // endTime
+    // location
+    // attending
+    // maybeAttending
+    // notAttending
+    try {
+        eventSchema.validate(request);
+    } catch {}
+
+    const itemToPut = generateEventItem(request);
     const putItemInput = {
         "TableName": "events",
         "Item": itemToPut,
@@ -81,5 +93,72 @@ router.post('/events', async (request, response) => {
 // router.delete('/events/:eventId', (request, response) => {
 //     response.send(`Deleting the ${request.params["eventId"]} event!`);
 // });
+
+function generateEventItem(request: Request) {
+    return {
+        "events_uuid": {
+            "S": uuidv4(),
+        },
+        "title": {
+            "S": request.body.title
+        },
+        "description": {
+            "S": request.body.description
+        },
+        "host": {
+            "S": request.body.host
+        },
+        "startTime": {
+            "N": request.body.startTime
+        },
+        "endTime": {
+            "N": request.body.endTime
+        },
+        "location": {
+            "S": request.body.location
+        },
+        "attending": {
+            "SS": request.body.attending
+        },
+        "maybeAttending": {
+            "SS": request.body.maybeAttending
+        },
+        "notAttending": {
+            "SS": request.body.notAttending
+        }
+    }
+}
+
+function getEventSchema() {
+    // https://joi.dev/api/?v=17.13.3
+    return Joi.object({
+        username: Joi.string()
+            .alphanum()
+            .min(3)
+            .max(30)
+            .required(),
+    
+        password: Joi.string()
+            .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
+    
+        repeat_password: Joi.ref('password'),
+    
+        access_token: [
+            Joi.string(),
+            Joi.number()
+        ],
+    
+        birth_year: Joi.number()
+            .integer()
+            .min(1900)
+            .max(2013),
+    
+        email: Joi.string()
+            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+    })
+        .with('username', 'birth_year')
+        .xor('password', 'access_token')
+        .with('password', 'repeat_password');    
+}
 
 export const EVENTS_ROUTER = router;
