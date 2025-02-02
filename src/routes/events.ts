@@ -2,13 +2,7 @@ import express, { Request, Response } from 'express';
 import { DynamoDBClient, ScanCommand, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { Hotspot } from '@cloudscape-design/components';
-import Joi from 'joi';
-
-const UUIDV4_REGEX = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/
-
-const VALIDATE_UUID_STR_LENGTH = 32 + 4; // alphanumeric UUID string length, including four dashes
-const VALIDATE_UUID_REGEX_PATTERN: [RegExp, string] = [UUIDV4_REGEX, "uuidPattern"];
+import { generateCreateEventSchema } from './util/schemaGenerator';
 
 const router = express.Router();
 const client = new DynamoDBClient({ 
@@ -16,7 +10,7 @@ const client = new DynamoDBClient({
     credentials: new AWS.SharedIniFileCredentials({ profile: "tangle-dev" })
 });
 
-const eventSchema = getEventSchema();
+const eventSchema = generateCreateEventSchema();
 
 router.get('/events', async (request: Request, response: Response) => {
     // unused for now -- TODO: implement pagination
@@ -127,37 +121,6 @@ function generateEventItem(request: Request) {
             "SS": request.body.notAttending
         }
     }
-}
-
-function getEventSchema() {
-    return Joi.object({
-        // events_uuid: Joi.string()
-        //     .pattern(...VALIDATE_UUID_REGEX_PATTERN)
-        //     .min(VALIDATE_UUID_STR_LENGTH)
-        //     .max(VALIDATE_UUID_STR_LENGTH)
-        //     .required(),
-    
-        title: Joi.string(),
-    
-        description: Joi.string(),
-    
-        host: Joi.string(),
-    
-        startTime: Joi.number()
-            .integer(),
-
-        endTime: Joi.number()
-            .integer(),
-    
-        location: Joi.string(),
-
-        attending: Joi.array(),
-
-        notAttending: Joi.array(),
-
-        maybeAttending: Joi.array(),
-
-    }).and('title', 'description', 'host', 'startTime', 'endTime', 'location', 'attending', 'maybeAttending', 'notAttending');
 }
 
 export const EVENTS_ROUTER = router;

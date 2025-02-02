@@ -2,7 +2,6 @@ import express, { Application } from "express";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-import bodyParser from "body-parser"
 
 export default class Server {
     constructor(app: Application) {
