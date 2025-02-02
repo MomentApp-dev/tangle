@@ -61,11 +61,15 @@ router.get('/events/:eventId', async (request: Request, response: Response) => {
 // });
 
 router.post('/events', async (request, response) => {
-    try {
-        eventSchema.validate(request);
-    } catch {
-        response.status(400).send();
-        console.error("Invalid request body provided.");
+    const { error } =  eventSchema.validate(request.body);
+
+    if (error) {
+        // if request doesn't pass JOI validation,
+        // return 400 and end route execution
+        console.error(error.details);
+        response.status(400).send("Invalid request.");
+
+        return;
     }
 
     const itemToPut = generateEventItem(request);
@@ -127,11 +131,11 @@ function generateEventItem(request: Request) {
 
 function getEventSchema() {
     return Joi.object({
-        events_uuid: Joi.string()
-            .pattern(...VALIDATE_UUID_REGEX_PATTERN)
-            .min(VALIDATE_UUID_STR_LENGTH)
-            .max(VALIDATE_UUID_STR_LENGTH)
-            .required(),
+        // events_uuid: Joi.string()
+        //     .pattern(...VALIDATE_UUID_REGEX_PATTERN)
+        //     .min(VALIDATE_UUID_STR_LENGTH)
+        //     .max(VALIDATE_UUID_STR_LENGTH)
+        //     .required(),
     
         title: Joi.string(),
     
@@ -153,10 +157,7 @@ function getEventSchema() {
 
         maybeAttending: Joi.array(),
 
-    })
-        .with('username', 'birth_year')
-        .xor('password', 'access_token')
-        .with('password', 'repeat_password');    
+    }).and('title', 'description', 'host', 'startTime', 'endTime', 'location', 'attending', 'maybeAttending', 'notAttending');
 }
 
 export const EVENTS_ROUTER = router;
