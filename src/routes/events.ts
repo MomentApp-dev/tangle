@@ -5,6 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { Hotspot } from '@cloudscape-design/components';
 import Joi from 'joi';
 
+const UUIDV4_REGEX = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/
+
+const VALIDATE_UUID_STR_LENGTH = 32 + 4; // alphanumeric UUID string length, including four dashes
+const VALIDATE_UUID_REGEX_PATTERN: [RegExp, string] = [UUIDV4_REGEX, "uuidPattern"];
+
 const router = express.Router();
 const client = new DynamoDBClient({ 
     region: "us-east-1", 
@@ -56,21 +61,12 @@ router.get('/events/:eventId', async (request: Request, response: Response) => {
 // });
 
 router.post('/events', async (request, response) => {
-    // creates new Item with random ID
-    // TODO: validate for valid input body for event creation
-
-    // title
-    // description
-    // host
-    // startTime
-    // endTime
-    // location
-    // attending
-    // maybeAttending
-    // notAttending
     try {
         eventSchema.validate(request);
-    } catch {}
+    } catch {
+        response.status(400).send();
+        console.error("Invalid request body provided.");
+    }
 
     const itemToPut = generateEventItem(request);
     const putItemInput = {
@@ -109,10 +105,10 @@ function generateEventItem(request: Request) {
             "S": request.body.host
         },
         "startTime": {
-            "N": request.body.startTime
+            "N": `${request.body.startTime}`
         },
         "endTime": {
-            "N": request.body.endTime
+            "N": `${request.body.endTime}`
         },
         "location": {
             "S": request.body.location
@@ -130,31 +126,33 @@ function generateEventItem(request: Request) {
 }
 
 function getEventSchema() {
-    // https://joi.dev/api/?v=17.13.3
     return Joi.object({
-        username: Joi.string()
-            .alphanum()
-            .min(3)
-            .max(30)
+        events_uuid: Joi.string()
+            .pattern(...VALIDATE_UUID_REGEX_PATTERN)
+            .min(VALIDATE_UUID_STR_LENGTH)
+            .max(VALIDATE_UUID_STR_LENGTH)
             .required(),
     
-        password: Joi.string()
-            .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
+        title: Joi.string(),
     
-        repeat_password: Joi.ref('password'),
+        description: Joi.string(),
     
-        access_token: [
-            Joi.string(),
-            Joi.number()
-        ],
+        host: Joi.string(),
     
-        birth_year: Joi.number()
-            .integer()
-            .min(1900)
-            .max(2013),
+        startTime: Joi.number()
+            .integer(),
+
+        endTime: Joi.number()
+            .integer(),
     
-        email: Joi.string()
-            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+        location: Joi.string(),
+
+        attending: Joi.array(),
+
+        notAttending: Joi.array(),
+
+        maybeAttending: Joi.array(),
+
     })
         .with('username', 'birth_year')
         .xor('password', 'access_token')
