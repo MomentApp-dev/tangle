@@ -63,7 +63,7 @@ router.post("/events", async (request, response) => {
   const { error } = eventSchema.validate(request.body);
 
   if (error) {
-    // if request doesn't pass JOI validation,
+    // if request doesn't pass JOI (hehe) validation,
     // return 400 and end route execution
     console.error(error.details);
     response.status(400).send("Invalid request.");
@@ -89,14 +89,13 @@ router.post("/events", async (request, response) => {
   }
 });
 
-// router.delete('/events/:eventId', (request, response) => {
-//     response.send(`Deleting the ${request.params["eventId"]} event!`);
-// });
-
 function generateEventItem(request: Request) {
-  return {
+  const item: any = {
     events_uuid: {
       S: uuidv4(),
+    },
+    isPublic: {
+      BOOL: request.body.isPublic,
     },
     title: {
       S: request.body.title,
@@ -115,17 +114,21 @@ function generateEventItem(request: Request) {
     },
     location: {
       S: request.body.location,
-    },
-    attending: {
-      SS: request.body.attending,
-    },
-    maybeAttending: {
-      SS: request.body.maybeAttending,
-    },
-    notAttending: {
-      SS: request.body.notAttending,
-    },
+    }
   };
+
+  // Only add array fields if they exist and have values
+  if (request.body.attending?.length) {
+    item.attending = { SS: request.body.attending };
+  }
+  if (request.body.maybeAttending?.length) {
+    item.maybeAttending = { SS: request.body.maybeAttending };
+  }
+  if (request.body.notAttending?.length) {
+    item.notAttending = { SS: request.body.notAttending };
+  }
+
+  return item;
 }
 
 export const EVENTS_ROUTER = router;
